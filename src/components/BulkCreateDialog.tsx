@@ -126,12 +126,12 @@ export default function BulkCreateDialog({
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
-      <DialogTitle>{title}</DialogTitle>
+      <DialogTitle sx={{ fontWeight: 600 }}>{title}</DialogTitle>
       <DialogContent>
         {creating && (
           <Box sx={{ mb: 2 }}>
             <LinearProgress variant="determinate" value={progress} />
-            <Typography variant="body2" sx={{ mt: 1 }}>
+            <Typography variant="body2" sx={{ mt: 1, color: "text.secondary" }}>
               {Math.round(progress)}% complete
             </Typography>
           </Box>
@@ -140,7 +140,7 @@ export default function BulkCreateDialog({
         {!creating && results.length > 0 && (
           <Box sx={{ mt: 1 }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="body2" sx={{ color: "text.secondary" }}>
                 {successCount} created{failCount > 0 ? `, ${failCount} failed` : ""}
               </Typography>
               {successCount > 0 && (
@@ -165,9 +165,12 @@ export default function BulkCreateDialog({
                 </TableHead>
                 <TableBody>
                   {results.map((r, i) => (
-                    <TableRow key={i} sx={r.error ? { bgcolor: "error.dark", opacity: 0.7 } : undefined}>
+                    <TableRow
+                      key={i}
+                      sx={r.error ? { bgcolor: "rgba(239, 68, 68, 0.1)" } : undefined}
+                    >
                       <TableCell>{r.name}</TableCell>
-                      <TableCell sx={{ fontFamily: "monospace" }}>{r.id}</TableCell>
+                      <TableCell sx={{ fontFamily: "monospace", fontSize: "0.8rem" }}>{r.id}</TableCell>
                       <TableCell align="right">R$ {r.price.toLocaleString()}</TableCell>
                       {failCount > 0 && (
                         <TableCell>
@@ -193,7 +196,14 @@ export default function BulkCreateDialog({
         {!creating && results.length === 0 && (
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
             {rows.map((row, i) => (
-              <Paper key={i} variant="outlined" sx={{ p: 2 }}>
+              <Paper
+                key={i}
+                variant="outlined"
+                sx={{
+                  p: 2,
+                  bgcolor: "rgba(26, 26, 20, 0.5)",
+                }}
+              >
                 <Box sx={{ display: "flex", gap: 2, alignItems: "flex-start", flexWrap: "wrap" }}>
                   <TextField
                     label="Name"
@@ -253,6 +263,10 @@ export default function BulkCreateDialog({
                     onClick={() => removeRow(i)}
                     disabled={rows.length <= 1}
                     size="small"
+                    sx={{
+                      color: "text.secondary",
+                      "&:hover": { color: "error.main" },
+                    }}
                   >
                     <Delete />
                   </IconButton>
@@ -271,7 +285,7 @@ export default function BulkCreateDialog({
           </Alert>
         )}
       </DialogContent>
-      <DialogActions>
+      <DialogActions sx={{ px: 3, pb: 2.5 }}>
         <Button onClick={handleClose} disabled={creating}>
           {results.length > 0 ? "Done" : "Cancel"}
         </Button>

@@ -85,7 +85,7 @@ export default function EditDialog({
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>{title}</DialogTitle>
+      <DialogTitle sx={{ fontWeight: 600 }}>{title}</DialogTitle>
       <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
         <TextField
           label="Name"
@@ -140,7 +140,7 @@ export default function EditDialog({
         </Button>
         {error && <Alert severity="error">{error}</Alert>}
       </DialogContent>
-      <DialogActions>
+      <DialogActions sx={{ px: 3, pb: 2.5 }}>
         <Button onClick={onClose} disabled={saving}>
           Cancel
         </Button>

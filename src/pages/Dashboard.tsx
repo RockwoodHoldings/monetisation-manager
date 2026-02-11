@@ -10,7 +10,6 @@ import {
   Toolbar,
   Typography,
   IconButton,
-  Divider,
 } from "@mui/material";
 import {
   ConfirmationNumber,
@@ -21,7 +20,7 @@ import type { AppState } from "../types";
 import Gamepasses from "./Gamepasses";
 import DeveloperProducts from "./DeveloperProducts";
 
-const DRAWER_WIDTH = 240;
+const DRAWER_WIDTH = 260;
 
 const NAV_ITEMS = [
   { label: "Gamepasses", icon: <ConfirmationNumber />, path: "/dashboard/gamepasses" },
@@ -44,15 +43,39 @@ export default function Dashboard({ appState, onBack }: Props) {
         sx={{ zIndex: (t) => t.zIndex.drawer + 1 }}
       >
         <Toolbar>
-          <IconButton color="inherit" edge="start" onClick={onBack} sx={{ mr: 2 }}>
+          <IconButton
+            edge="start"
+            onClick={onBack}
+            sx={{ mr: 2, color: "text.secondary", "&:hover": { color: "primary.light" } }}
+          >
             <ArrowBack />
           </IconButton>
-          <Typography variant="h6" noWrap sx={{ flexGrow: 1 }}>
+          <Typography
+            variant="h6"
+            noWrap
+            sx={{
+              flexGrow: 1,
+              background: "linear-gradient(135deg, #f0ece0, #e8c56d)",
+              backgroundClip: "text",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+            }}
+          >
             {appState.experienceName}
           </Typography>
-          <Typography variant="body2" color="inherit" sx={{ opacity: 0.7 }}>
-            Universe {appState.universeId}
-          </Typography>
+          <Box
+            sx={{
+              px: 1.5,
+              py: 0.5,
+              borderRadius: 2,
+              bgcolor: "rgba(212, 168, 67, 0.1)",
+              border: "1px solid rgba(212, 168, 67, 0.2)",
+            }}
+          >
+            <Typography variant="body2" sx={{ color: "text.secondary", fontFamily: "monospace", fontSize: "0.8rem" }}>
+              Universe {appState.universeId}
+            </Typography>
+          </Box>
         </Toolbar>
       </AppBar>
 
@@ -65,22 +88,44 @@ export default function Dashboard({ appState, onBack }: Props) {
         }}
       >
         <Toolbar />
-        <Divider />
-        <List>
-          {NAV_ITEMS.map((item) => (
-            <ListItemButton
-              key={item.path}
-              selected={location.pathname === item.path}
-              onClick={() => navigate(item.path)}
-            >
-              <ListItemIcon>{item.icon}</ListItemIcon>
-              <ListItemText primary={item.label} />
-            </ListItemButton>
-          ))}
-        </List>
+        <Box sx={{ px: 1, pt: 2 }}>
+          <Typography
+            variant="caption"
+            sx={{
+              px: 1.5,
+              pb: 1,
+              display: "block",
+              color: "text.secondary",
+              textTransform: "uppercase",
+              letterSpacing: "0.08em",
+              fontSize: "0.7rem",
+              fontWeight: 700,
+            }}
+          >
+            Manage
+          </Typography>
+          <List disablePadding>
+            {NAV_ITEMS.map((item) => (
+              <ListItemButton
+                key={item.path}
+                selected={location.pathname === item.path}
+                onClick={() => navigate(item.path)}
+              >
+                <ListItemIcon>{item.icon}</ListItemIcon>
+                <ListItemText
+                  primary={item.label}
+                  primaryTypographyProps={{
+                    fontWeight: location.pathname === item.path ? 600 : 400,
+                    color: location.pathname === item.path ? "primary.light" : "text.secondary",
+                  }}
+                />
+              </ListItemButton>
+            ))}
+          </List>
+        </Box>
       </Drawer>
 
-      <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
+      <Box component="main" sx={{ flexGrow: 1, p: 4 }}>
         <Toolbar />
         <Routes>
           <Route index element={<Placeholder />} />
@@ -94,8 +139,20 @@ export default function Dashboard({ appState, onBack }: Props) {
 
 function Placeholder() {
   return (
-    <Box sx={{ textAlign: "center", mt: 10, opacity: 0.5 }}>
-      <Typography variant="h5">
+    <Box
+      sx={{
+        textAlign: "center",
+        mt: 12,
+        px: 4,
+      }}
+    >
+      <Typography
+        variant="h5"
+        sx={{
+          color: "text.secondary",
+          fontWeight: 500,
+        }}
+      >
         Select Gamepasses or Developer Products from the sidebar to get started.
       </Typography>
     </Box>

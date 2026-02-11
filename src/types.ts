@@ -4,6 +4,12 @@ export interface AppState {
   experienceName: string;
 }
 
+export interface SavedKey {
+  id: string;
+  label: string;
+  apiKey: string;
+}
+
 export interface Session {
   id: string;
   apiKey: string;

@@ -79,16 +79,22 @@ export default function Gamepasses({ appState }: Props) {
   return (
     <Box>
       <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 1 }}>
-        <Typography variant="h4" fontWeight={600} sx={{ flex: 1 }}>
+        <Typography variant="h4" sx={{ flex: 1, color: "text.primary" }}>
           Gamepasses
         </Typography>
-        <Button startIcon={<Refresh />} onClick={fetchPasses} disabled={loading}>
+        <Button
+          startIcon={<Refresh />}
+          onClick={fetchPasses}
+          disabled={loading}
+          size="small"
+        >
           Refresh
         </Button>
         <Button
           variant="contained"
           startIcon={<Add />}
           onClick={() => setBulkOpen(true)}
+          size="small"
         >
           Bulk Create
         </Button>
@@ -98,17 +104,18 @@ export default function Gamepasses({ appState }: Props) {
           href={dashboardUrl}
           target="_blank"
           rel="noopener"
+          size="small"
         >
           Manage on Roblox
         </Button>
       </Box>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+      <Typography variant="body2" sx={{ mb: 3, color: "text.secondary" }}>
         Deletion is only available via the Roblox Creator Dashboard.
       </Typography>
 
       {loading && (
-        <Box sx={{ textAlign: "center", py: 6 }}>
-          <CircularProgress />
+        <Box sx={{ textAlign: "center", py: 8 }}>
+          <CircularProgress sx={{ color: "primary.light" }} />
         </Box>
       )}
 
