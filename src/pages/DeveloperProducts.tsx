@@ -12,6 +12,7 @@ import {
   LayoutGrid,
   Search,
   Loader2,
+  EyeOff,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,6 +51,7 @@ export default function DeveloperProducts({ appState }: Props) {
   const [sortPrice, setSortPrice] = useState<"asc" | "desc" | null>(null);
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
   const [search, setSearch] = useState("");
+  const [hideOffsale, setHideOffsale] = useState(false);
 
   const fetchProducts = useCallback(async () => {
     setLoading(true);
@@ -69,10 +71,14 @@ export default function DeveloperProducts({ appState }: Props) {
   }, [fetchProducts]);
 
   const filtered = useMemo(() => {
-    if (!search.trim()) return products;
-    const q = search.toLowerCase();
-    return products.filter((dp) => dp.name.toLowerCase().includes(q));
-  }, [products, search]);
+    let result = products;
+    if (hideOffsale) result = result.filter((dp) => dp.isForSale);
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      result = result.filter((dp) => dp.name.toLowerCase().includes(q));
+    }
+    return result;
+  }, [products, search, hideOffsale]);
 
   const sorted = useMemo(() => {
     if (!sortPrice) return filtered;
@@ -85,7 +91,7 @@ export default function DeveloperProducts({ appState }: Props) {
   const safePage = Math.min(page, totalPages - 1);
   const paged = sorted.slice(safePage * pageSize, (safePage + 1) * pageSize);
 
-  useEffect(() => { setPage(0); }, [sortPrice, pageSize, search]);
+  useEffect(() => { setPage(0); }, [sortPrice, pageSize, search, hideOffsale]);
 
   const handleEditSave = async (data: {
     name: string;
@@ -182,6 +188,15 @@ export default function DeveloperProducts({ appState }: Props) {
                 : "Price"}
           </Button>
 
+          <Button
+            variant={hideOffsale ? "default" : "outline"}
+            size="sm"
+            onClick={() => setHideOffsale((v) => !v)}
+          >
+            <EyeOff className="h-4 w-4 mr-1" />
+            {hideOffsale ? "Offsale Hidden" : "Hide Offsale"}
+          </Button>
+
           <div className="flex-1" />
 
           <span className="text-sm text-muted-foreground">Per page:</span>
@@ -219,7 +234,7 @@ export default function DeveloperProducts({ appState }: Props) {
             : "flex flex-col gap-3"
         }
       >
-        {paged.map((dp) => (
+        {paged.map((dp, i) => (
           <ItemCard
             key={dp.id}
             name={dp.name}
@@ -228,6 +243,7 @@ export default function DeveloperProducts({ appState }: Props) {
             iconUrl={dp.iconUrl}
             onEdit={() => setEditTarget(dp)}
             view={viewMode}
+            index={i}
           />
         ))}
       </div>

@@ -12,6 +12,7 @@ import {
   LayoutGrid,
   Search,
   Loader2,
+  EyeOff,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,6 +47,7 @@ export default function Gamepasses({ appState }: Props) {
   const [sortPrice, setSortPrice] = useState<"asc" | "desc" | null>(null);
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
   const [search, setSearch] = useState("");
+  const [hideOffsale, setHideOffsale] = useState(false);
 
   const fetchPasses = useCallback(async () => {
     setLoading(true);
@@ -65,10 +67,14 @@ export default function Gamepasses({ appState }: Props) {
   }, [fetchPasses]);
 
   const filtered = useMemo(() => {
-    if (!search.trim()) return passes;
-    const q = search.toLowerCase();
-    return passes.filter((gp) => gp.name.toLowerCase().includes(q));
-  }, [passes, search]);
+    let result = passes;
+    if (hideOffsale) result = result.filter((gp) => gp.isForSale);
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      result = result.filter((gp) => gp.name.toLowerCase().includes(q));
+    }
+    return result;
+  }, [passes, search, hideOffsale]);
 
   const sorted = useMemo(() => {
     if (!sortPrice) return filtered;
@@ -81,7 +87,7 @@ export default function Gamepasses({ appState }: Props) {
   const safePage = Math.min(page, totalPages - 1);
   const paged = sorted.slice(safePage * pageSize, (safePage + 1) * pageSize);
 
-  useEffect(() => { setPage(0); }, [sortPrice, pageSize, search]);
+  useEffect(() => { setPage(0); }, [sortPrice, pageSize, search, hideOffsale]);
 
   const handleEditSave = async (data: {
     name: string;
@@ -179,6 +185,15 @@ export default function Gamepasses({ appState }: Props) {
                 : "Price"}
           </Button>
 
+          <Button
+            variant={hideOffsale ? "default" : "outline"}
+            size="sm"
+            onClick={() => setHideOffsale((v) => !v)}
+          >
+            <EyeOff className="h-4 w-4 mr-1" />
+            {hideOffsale ? "Offsale Hidden" : "Hide Offsale"}
+          </Button>
+
           <div className="flex-1" />
 
           <span className="text-sm text-muted-foreground">Per page:</span>
@@ -216,7 +231,7 @@ export default function Gamepasses({ appState }: Props) {
             : "flex flex-col gap-3"
         }
       >
-        {paged.map((gp) => (
+        {paged.map((gp, i) => (
           <ItemCard
             key={gp.id}
             name={gp.name}
@@ -226,6 +241,7 @@ export default function Gamepasses({ appState }: Props) {
             iconUrl={gp.iconUrl}
             onEdit={() => setEditTarget(gp)}
             view={viewMode}
+            index={i}
           />
         ))}
       </div>

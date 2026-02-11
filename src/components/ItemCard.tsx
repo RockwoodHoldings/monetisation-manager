@@ -10,6 +10,7 @@ interface Props {
   iconUrl?: string;
   onEdit: () => void;
   view?: "list" | "grid";
+  index?: number;
 }
 
 export default function ItemCard({
@@ -20,10 +21,16 @@ export default function ItemCard({
   iconUrl,
   onEdit,
   view = "list",
+  index = 0,
 }: Props) {
+  const stagger = { animationDelay: `${index * 40}ms` };
+
   if (view === "grid") {
     return (
-      <Card className="flex flex-col relative bg-card/80">
+      <Card
+        className="flex flex-col relative bg-card/80 animate-[fadeInUp_0.3s_ease-out_both] hover:-translate-y-0.5 transition-transform duration-200"
+        style={stagger}
+      >
         {iconUrl ? (
           <img
             src={iconUrl}
@@ -60,7 +67,10 @@ export default function ItemCard({
   }
 
   return (
-    <Card className="flex items-center bg-card/80">
+    <Card
+      className="flex items-center bg-card/80 animate-[fadeInUp_0.3s_ease-out_both] hover:-translate-y-0.5 transition-transform duration-200"
+      style={stagger}
+    >
       {iconUrl ? (
         <img
           src={iconUrl}

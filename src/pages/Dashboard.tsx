@@ -52,7 +52,7 @@ export default function Dashboard({ appState, onBack }: Props) {
                   key={item.path}
                   onClick={() => navigate(item.path)}
                   className={cn(
-                    "flex items-center gap-2 px-3 h-8 rounded-lg text-sm transition-colors cursor-pointer",
+                    "flex items-center gap-2 px-3 h-8 rounded-lg text-sm transition-all duration-200 cursor-pointer",
                     selected
                       ? "bg-primary/12 text-primary-light font-semibold"
                       : "text-muted-foreground hover:bg-primary/6"

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Eye, EyeOff, Rocket, Trash2 } from "lucide-react";
+import { Eye, EyeOff, Rocket, Trash2, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,6 +18,7 @@ import {
 import type { AppState } from "../types";
 import { getSessions, saveSession, deleteSession, getSavedKeys, addSavedKey, deleteSavedKey } from "../sessions";
 import { fetchUniverseInfo } from "../api/roblox";
+import { cn } from "@/lib/utils";
 
 interface Props {
   appState: AppState;
@@ -37,6 +38,7 @@ export default function Setup({ appState, setAppState }: Props) {
   const [saveKey, setSaveKey] = useState(false);
   const [keyLabel, setKeyLabel] = useState("");
   const [sessionInfo, setSessionInfo] = useState<Map<string, { name: string; iconUrl: string }>>(new Map());
+  const [sessionsOpen, setSessionsOpen] = useState(true);
   const nameManuallyEdited = useRef(false);
 
   useEffect(() => {
@@ -147,44 +149,64 @@ export default function Setup({ appState, setAppState }: Props) {
       {/* Recent Sessions */}
       {sessions.length > 0 && (
         <div className="rounded-xl border border-border bg-secondary/60 backdrop-blur-sm p-5">
-          <h2 className="text-lg font-semibold text-foreground mb-3">Recent Sessions</h2>
-          <div className="flex flex-col gap-2">
-            {sessions.map((s) => (
-              <Card key={s.id} className="bg-card/80">
-                <div className="flex items-center">
-                  {sessionInfo.get(s.universeId)?.iconUrl && (
-                    <img
-                      src={sessionInfo.get(s.universeId)!.iconUrl}
-                      alt={s.experienceName}
-                      className="w-14 h-14 object-cover m-2 rounded-lg shrink-0"
-                    />
-                  )}
-                  <button
-                    onClick={() => handleSessionClick(s)}
-                    className="flex-1 text-left px-3 py-3 hover:bg-primary/6 transition-colors rounded-lg cursor-pointer"
-                  >
-                    <p className="font-semibold text-foreground">
-                      {sessionInfo.get(s.universeId)?.name || s.experienceName}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Universe {s.universeId} &middot;{" "}
-                      {new Date(s.lastUsed).toLocaleDateString()}
-                    </p>
-                  </button>
-                  <button
-                    onClick={() => handleDeleteSession(s.id)}
-                    className="mx-2 p-2 rounded-lg text-muted-foreground hover:text-destructive transition-colors cursor-pointer"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
-              </Card>
-            ))}
+          <button
+            onClick={() => setSessionsOpen((v) => !v)}
+            className="flex items-center justify-between w-full cursor-pointer"
+          >
+            <h2 className="text-lg font-semibold text-foreground">Recent Sessions</h2>
+            <ChevronDown
+              className={cn(
+                "h-5 w-5 text-muted-foreground transition-transform duration-200",
+                !sessionsOpen && "-rotate-90"
+              )}
+            />
+          </button>
+          <div
+            className={cn(
+              "grid transition-[grid-template-rows] duration-300 ease-out",
+              sessionsOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+            )}
+          >
+            <div className="overflow-hidden">
+              <div className="flex flex-col gap-2 mt-3">
+                {sessions.map((s) => (
+                  <Card key={s.id} className="bg-card/80">
+                    <div className="flex items-center">
+                      {sessionInfo.get(s.universeId)?.iconUrl && (
+                        <img
+                          src={sessionInfo.get(s.universeId)!.iconUrl}
+                          alt={s.experienceName}
+                          className="w-14 h-14 object-cover m-2 rounded-lg shrink-0"
+                        />
+                      )}
+                      <button
+                        onClick={() => handleSessionClick(s)}
+                        className="flex-1 text-left px-3 py-3 hover:bg-primary/6 transition-colors rounded-lg cursor-pointer"
+                      >
+                        <p className="font-semibold text-foreground">
+                          {sessionInfo.get(s.universeId)?.name || s.experienceName}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          Universe {s.universeId} &middot;{" "}
+                          {new Date(s.lastUsed).toLocaleDateString()}
+                        </p>
+                      </button>
+                      <button
+                        onClick={() => handleDeleteSession(s.id)}
+                        className="mx-2 p-2 rounded-lg text-muted-foreground hover:text-destructive transition-colors cursor-pointer"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+              <Separator className="my-4" />
+              <p className="text-sm text-muted-foreground text-center">
+                Or connect a new experience below
+              </p>
+            </div>
           </div>
-          <Separator className="my-4" />
-          <p className="text-sm text-muted-foreground text-center">
-            Or connect a new experience below
-          </p>
         </div>
       )}
 
