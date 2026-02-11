@@ -1,13 +1,6 @@
-import {
-  Card,
-  CardContent,
-  CardMedia,
-  Typography,
-  Chip,
-  Box,
-  IconButton,
-} from "@mui/material";
-import { Edit } from "@mui/icons-material";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Pencil } from "lucide-react";
 
 interface Props {
   name: string;
@@ -30,176 +23,75 @@ export default function ItemCard({
 }: Props) {
   if (view === "grid") {
     return (
-      <Card
-        sx={{
-          bgcolor: "rgba(26, 26, 20, 0.8)",
-          display: "flex",
-          flexDirection: "column",
-          position: "relative",
-        }}
-      >
+      <Card className="flex flex-col relative bg-card/80">
         {iconUrl ? (
-          <CardMedia
-            component="img"
-            sx={{
-              width: "100%",
-              aspectRatio: "1",
-              objectFit: "cover",
-            }}
-            image={iconUrl}
+          <img
+            src={iconUrl}
             alt={name}
+            className="w-full aspect-square object-cover rounded-t-xl"
           />
         ) : (
-          <Box
-            sx={{
-              width: "100%",
-              aspectRatio: "1",
-              bgcolor: "rgba(212, 168, 67, 0.08)",
-              border: "1px solid rgba(212, 168, 67, 0.15)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <Typography variant="caption" sx={{ color: "text.secondary" }}>
-              No icon
-            </Typography>
-          </Box>
+          <div className="w-full aspect-square bg-primary/8 border-b border-border flex items-center justify-center rounded-t-xl">
+            <span className="text-xs text-muted-foreground">No icon</span>
+          </div>
         )}
-        <Chip
-          label={isForSale ? "On Sale" : "Off Sale"}
-          size="small"
-          color={isForSale ? "success" : "default"}
-          variant={isForSale ? "filled" : "outlined"}
-          sx={{
-            fontSize: "0.65rem",
-            height: 22,
-            position: "absolute",
-            top: 8,
-            left: 8,
-          }}
-        />
-        <CardContent sx={{ flex: 1, p: 1.5, "&:last-child": { pb: 1.5 } }}>
-          <Typography
-            variant="subtitle2"
-            fontWeight={600}
-            noWrap
-            sx={{ color: "text.primary" }}
-          >
-            {name}
-          </Typography>
-          <Typography
-            variant="body2"
-            fontWeight={600}
-            sx={{ color: "primary.light", mt: 0.5 }}
-          >
+        <Badge
+          variant={isForSale ? "success" : "outline"}
+          className="absolute top-2 left-2 text-[0.65rem]"
+        >
+          {isForSale ? "On Sale" : "Off Sale"}
+        </Badge>
+        <div className="flex-1 p-3">
+          <p className="text-sm font-semibold text-foreground truncate">{name}</p>
+          <p className="text-sm font-semibold text-primary-light mt-1">
             R$ {price.toLocaleString()}
-          </Typography>
-        </CardContent>
-        <Box sx={{ px: 1.5, pb: 1.5 }}>
-          <IconButton
+          </p>
+        </div>
+        <div className="px-3 pb-3">
+          <button
             onClick={onEdit}
-            size="small"
-            sx={{
-              color: "text.secondary",
-              border: "1px solid rgba(212, 168, 67, 0.2)",
-              borderRadius: 1.5,
-              width: "100%",
-              "&:hover": {
-                color: "primary.light",
-                bgcolor: "rgba(212, 168, 67, 0.1)",
-              },
-            }}
+            className="w-full flex items-center justify-center h-8 rounded-md border border-primary/20 text-muted-foreground hover:text-primary-light hover:bg-primary/10 transition-colors cursor-pointer"
           >
-            <Edit fontSize="small" />
-          </IconButton>
-        </Box>
+            <Pencil className="h-4 w-4" />
+          </button>
+        </div>
       </Card>
     );
   }
 
   return (
-    <Card
-      sx={{
-        display: "flex",
-        alignItems: "center",
-        bgcolor: "rgba(26, 26, 20, 0.8)",
-      }}
-    >
+    <Card className="flex items-center bg-card/80">
       {iconUrl ? (
-        <CardMedia
-          component="img"
-          sx={{
-            width: 72,
-            height: 72,
-            objectFit: "cover",
-            m: 1.5,
-            borderRadius: 2,
-          }}
-          image={iconUrl}
+        <img
+          src={iconUrl}
           alt={name}
+          className="w-[72px] h-[72px] object-cover m-3 rounded-lg"
         />
       ) : (
-        <Box
-          sx={{
-            width: 72,
-            height: 72,
-            m: 1.5,
-            borderRadius: 2,
-            bgcolor: "rgba(212, 168, 67, 0.08)",
-            border: "1px solid rgba(212, 168, 67, 0.15)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Typography variant="caption" sx={{ color: "text.secondary", fontSize: "0.65rem" }}>
-            No icon
-          </Typography>
-        </Box>
+        <div className="w-[72px] h-[72px] m-3 rounded-lg bg-primary/8 border border-primary/15 flex items-center justify-center">
+          <span className="text-[0.65rem] text-muted-foreground">No icon</span>
+        </div>
       )}
-      <CardContent sx={{ flex: 1, py: 1.5, "&:last-child": { pb: 1.5 } }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}>
-          <Typography variant="subtitle1" fontWeight={600} sx={{ color: "text.primary" }}>
-            {name}
-          </Typography>
-          <Chip
-            label={isForSale ? "On Sale" : "Off Sale"}
-            size="small"
-            color={isForSale ? "success" : "default"}
-            variant={isForSale ? "filled" : "outlined"}
-            sx={{ fontSize: "0.7rem", height: 24 }}
-          />
-        </Box>
+      <div className="flex-1 py-3">
+        <div className="flex items-center gap-2 mb-1">
+          <span className="text-base font-semibold text-foreground">{name}</span>
+          <Badge variant={isForSale ? "success" : "outline"} className="text-[0.7rem]">
+            {isForSale ? "On Sale" : "Off Sale"}
+          </Badge>
+        </div>
         {description && (
-          <Typography variant="body2" noWrap sx={{ color: "text.secondary" }}>
-            {description}
-          </Typography>
+          <p className="text-sm text-muted-foreground truncate">{description}</p>
         )}
-        <Typography
-          variant="body2"
-          fontWeight={600}
-          sx={{
-            mt: 0.5,
-            color: "primary.light",
-          }}
-        >
+        <p className="text-sm font-semibold text-primary-light mt-1">
           R$ {price.toLocaleString()}
-        </Typography>
-      </CardContent>
-      <IconButton
+        </p>
+      </div>
+      <button
         onClick={onEdit}
-        sx={{
-          mr: 2,
-          color: "text.secondary",
-          "&:hover": {
-            color: "primary.light",
-            bgcolor: "rgba(212, 168, 67, 0.1)",
-          },
-        }}
+        className="mr-4 p-2 rounded-lg text-muted-foreground hover:text-primary-light hover:bg-primary/10 transition-colors cursor-pointer"
       >
-        <Edit />
-      </IconButton>
+        <Pencil className="h-5 w-5" />
+      </button>
     </Card>
   );
 }

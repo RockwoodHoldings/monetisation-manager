@@ -1,33 +1,25 @@
 import { useState } from "react";
 import {
   Dialog,
-  DialogTitle,
   DialogContent,
-  DialogActions,
-  TextField,
-  Button,
-  Box,
-  IconButton,
-  Typography,
-  LinearProgress,
-  Alert,
-  Paper,
-  Switch,
-  FormControlLabel,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Snackbar,
-} from "@mui/material";
-import { Add, Delete, CloudUpload, ContentCopy } from "@mui/icons-material";
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Alert } from "@/components/ui/alert";
+import { Progress } from "@/components/ui/progress";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+import { useToast } from "@/components/ToastProvider";
+import { Plus, Trash2, Upload, Copy } from "lucide-react";
 import type { BulkCreateItem, CreateResult } from "../types";
 
 interface Props {
   open: boolean;
-  onClose: () => void;
+  onClose: (created?: boolean) => void;
   onCreate: (item: BulkCreateItem) => Promise<{ id: string; name: string; price: number }>;
   title: string;
   showDescription: boolean;
@@ -49,7 +41,7 @@ export default function BulkCreateDialog({
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState("");
   const [results, setResults] = useState<CreateResult[]>([]);
-  const [copied, setCopied] = useState(false);
+  const { showToast } = useToast();
 
   const updateRow = (i: number, patch: Partial<BulkCreateItem>) => {
     setRows((prev) => prev.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
@@ -108,199 +100,170 @@ export default function BulkCreateDialog({
     );
     const text = `Name\tID\tPrice\n${lines.join("\n")}`;
     await navigator.clipboard.writeText(text);
-    setCopied(true);
+    showToast("Copied to clipboard");
   };
 
   const handleClose = () => {
     if (creating) return;
+    const hadSuccess = results.some((r) => !r.error);
     setRows([emptyRow()]);
     setProgress(0);
     setResults([]);
     setError("");
-    setCopied(false);
-    onClose();
+    onClose(hadSuccess);
   };
 
   const successCount = results.filter((r) => !r.error).length;
   const failCount = results.filter((r) => r.error).length;
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
-      <DialogTitle sx={{ fontWeight: 600 }}>{title}</DialogTitle>
-      <DialogContent>
+    <Dialog open={open} onOpenChange={(v) => !v && handleClose()}>
+      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+        </DialogHeader>
+
         {creating && (
-          <Box sx={{ mb: 2 }}>
-            <LinearProgress variant="determinate" value={progress} />
-            <Typography variant="body2" sx={{ mt: 1, color: "text.secondary" }}>
+          <div className="mb-4">
+            <Progress value={progress} />
+            <p className="text-sm text-muted-foreground mt-2">
               {Math.round(progress)}% complete
-            </Typography>
-          </Box>
+            </p>
+          </div>
         )}
 
         {!creating && results.length > 0 && (
-          <Box sx={{ mt: 1 }}>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
-              <Typography variant="body2" sx={{ color: "text.secondary" }}>
+          <div className="mt-2">
+            <div className="flex items-center gap-3 mb-3">
+              <span className="text-sm text-muted-foreground">
                 {successCount} created{failCount > 0 ? `, ${failCount} failed` : ""}
-              </Typography>
+              </span>
               {successCount > 0 && (
-                <Button
-                  size="small"
-                  startIcon={<ContentCopy />}
-                  onClick={handleCopy}
-                >
+                <Button variant="ghost" size="sm" onClick={handleCopy}>
+                  <Copy className="h-4 w-4 mr-1" />
                   Copy to Clipboard
                 </Button>
               )}
-            </Box>
-            <TableContainer component={Paper} variant="outlined">
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Name</TableCell>
-                    <TableCell>ID</TableCell>
-                    <TableCell align="right">Price</TableCell>
-                    {failCount > 0 && <TableCell>Status</TableCell>}
+            </div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>ID</TableHead>
+                  <TableHead className="text-right">Price</TableHead>
+                  {failCount > 0 && <TableHead>Status</TableHead>}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {results.map((r, i) => (
+                  <TableRow
+                    key={i}
+                    className={r.error ? "bg-destructive/10" : undefined}
+                  >
+                    <TableCell>{r.name}</TableCell>
+                    <TableCell className="font-mono text-xs">{r.id}</TableCell>
+                    <TableCell className="text-right">R$ {r.price.toLocaleString()}</TableCell>
+                    {failCount > 0 && (
+                      <TableCell>
+                        {r.error ? (
+                          <span className="text-sm text-destructive">
+                            {r.error.length > 60 ? r.error.slice(0, 60) + "..." : r.error}
+                          </span>
+                        ) : (
+                          <span className="text-sm text-success">OK</span>
+                        )}
+                      </TableCell>
+                    )}
                   </TableRow>
-                </TableHead>
-                <TableBody>
-                  {results.map((r, i) => (
-                    <TableRow
-                      key={i}
-                      sx={r.error ? { bgcolor: "rgba(239, 68, 68, 0.1)" } : undefined}
-                    >
-                      <TableCell>{r.name}</TableCell>
-                      <TableCell sx={{ fontFamily: "monospace", fontSize: "0.8rem" }}>{r.id}</TableCell>
-                      <TableCell align="right">R$ {r.price.toLocaleString()}</TableCell>
-                      {failCount > 0 && (
-                        <TableCell>
-                          {r.error ? (
-                            <Typography variant="body2" color="error">
-                              {r.error.length > 60 ? r.error.slice(0, 60) + "..." : r.error}
-                            </Typography>
-                          ) : (
-                            <Typography variant="body2" color="success.main">
-                              OK
-                            </Typography>
-                          )}
-                        </TableCell>
-                      )}
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Box>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         )}
 
         {!creating && results.length === 0 && (
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
+          <div className="flex flex-col gap-3 mt-2">
             {rows.map((row, i) => (
-              <Paper
+              <div
                 key={i}
-                variant="outlined"
-                sx={{
-                  p: 2,
-                  bgcolor: "rgba(26, 26, 20, 0.5)",
-                }}
+                className="rounded-xl border border-border bg-card/50 p-3"
               >
-                <Box sx={{ display: "flex", gap: 2, alignItems: "flex-start", flexWrap: "wrap" }}>
-                  <TextField
-                    label="Name"
-                    size="small"
-                    value={row.name}
-                    onChange={(e) => updateRow(i, { name: e.target.value })}
-                    sx={{ flex: 2, minWidth: 150 }}
-                  />
+                <div className="flex gap-2 items-start flex-wrap">
+                  <div className="flex-2 min-w-[150px]">
+                    <Input
+                      placeholder="Name"
+                      value={row.name}
+                      onChange={(e) => updateRow(i, { name: e.target.value })}
+                    />
+                  </div>
                   {showDescription && (
-                    <TextField
-                      label="Description"
-                      size="small"
-                      value={row.description}
-                      onChange={(e) => updateRow(i, { description: e.target.value })}
-                      sx={{ flex: 2, minWidth: 150 }}
-                    />
+                    <div className="flex-2 min-w-[150px]">
+                      <Input
+                        placeholder="Description"
+                        value={row.description}
+                        onChange={(e) => updateRow(i, { description: e.target.value })}
+                      />
+                    </div>
                   )}
-                  <TextField
-                    label="Price"
-                    size="small"
-                    type="number"
-                    value={row.price}
-                    onChange={(e) => updateRow(i, { price: Number(e.target.value) })}
-                    sx={{ flex: 1, minWidth: 100 }}
-                  />
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    component="label"
-                    startIcon={<CloudUpload />}
-                    sx={{ minWidth: 130, height: 40 }}
-                  >
-                    {row.imageFile ? row.imageFile.name.slice(0, 12) : "Icon"}
-                    <input
-                      type="file"
-                      hidden
-                      accept="image/*"
-                      onChange={(e) =>
-                        updateRow(i, { imageFile: e.target.files?.[0] ?? null })
-                      }
+                  <div className="flex-1 min-w-[100px]">
+                    <Input
+                      type="number"
+                      placeholder="Price"
+                      value={row.price}
+                      onChange={(e) => updateRow(i, { price: Number(e.target.value) })}
                     />
-                  </Button>
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        size="small"
-                        checked={row.isRegionalPricingEnabled}
+                  </div>
+                  <Button variant="outline" size="sm" className="h-10" asChild>
+                    <label className="cursor-pointer">
+                      <Upload className="h-4 w-4 mr-1" />
+                      {row.imageFile ? row.imageFile.name.slice(0, 12) : "Icon"}
+                      <input
+                        type="file"
+                        className="hidden"
+                        accept="image/*"
                         onChange={(e) =>
-                          updateRow(i, { isRegionalPricingEnabled: e.target.checked })
+                          updateRow(i, { imageFile: e.target.files?.[0] ?? null })
                         }
                       />
-                    }
-                    label="Regional"
-                    sx={{ minWidth: 110 }}
-                  />
-                  <IconButton
+                    </label>
+                  </Button>
+                  <div className="flex items-center gap-2 h-10">
+                    <Switch
+                      checked={row.isRegionalPricingEnabled}
+                      onCheckedChange={(v) => updateRow(i, { isRegionalPricingEnabled: v })}
+                    />
+                    <Label className="text-sm text-muted-foreground">Regional</Label>
+                  </div>
+                  <button
                     onClick={() => removeRow(i)}
                     disabled={rows.length <= 1}
-                    size="small"
-                    sx={{
-                      color: "text.secondary",
-                      "&:hover": { color: "error.main" },
-                    }}
+                    className="h-10 w-10 flex items-center justify-center rounded-lg text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50 cursor-pointer"
                   >
-                    <Delete />
-                  </IconButton>
-                </Box>
-              </Paper>
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
             ))}
-            <Button startIcon={<Add />} onClick={addRow}>
+            <Button variant="ghost" onClick={addRow}>
+              <Plus className="h-4 w-4 mr-1" />
               Add Another
             </Button>
-          </Box>
+          </div>
         )}
 
-        {error && (
-          <Alert severity="error" sx={{ mt: 2 }}>
-            {error}
-          </Alert>
-        )}
-      </DialogContent>
-      <DialogActions sx={{ px: 3, pb: 2.5 }}>
-        <Button onClick={handleClose} disabled={creating}>
-          {results.length > 0 ? "Done" : "Cancel"}
-        </Button>
-        {results.length === 0 && (
-          <Button onClick={handleCreate} variant="contained" disabled={creating}>
-            Create All ({rows.filter((r) => r.name.trim()).length})
+        {error && <Alert variant="destructive" className="mt-2">{error}</Alert>}
+
+        <DialogFooter>
+          <Button variant="ghost" onClick={handleClose} disabled={creating}>
+            {results.length > 0 ? "Done" : "Cancel"}
           </Button>
-        )}
-      </DialogActions>
-      <Snackbar
-        open={copied}
-        autoHideDuration={2000}
-        onClose={() => setCopied(false)}
-        message="Copied to clipboard"
-      />
+          {results.length === 0 && (
+            <Button onClick={handleCreate} disabled={creating}>
+              Create All ({rows.filter((r) => r.name.trim()).length})
+            </Button>
+          )}
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }

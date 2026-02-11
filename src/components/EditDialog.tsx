@@ -1,17 +1,17 @@
 import { useState } from "react";
 import {
   Dialog,
-  DialogTitle,
   DialogContent,
-  DialogActions,
-  TextField,
-  Button,
-  Switch,
-  FormControlLabel,
-  Alert,
-  CircularProgress,
-} from "@mui/material";
-import { CloudUpload } from "@mui/icons-material";
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Alert } from "@/components/ui/alert";
+import { Upload, Loader2 } from "lucide-react";
 
 interface Props {
   open: boolean;
@@ -84,70 +84,69 @@ export default function EditDialog({
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle sx={{ fontWeight: 600 }}>{title}</DialogTitle>
-      <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
-        <TextField
-          label="Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          fullWidth
-        />
-        {showDescription && (
-          <TextField
-            label="Description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            fullWidth
-            multiline
-            rows={3}
-          />
-        )}
-        <TextField
-          label="Price (Robux)"
-          value={price}
-          onChange={(e) => setPrice(e.target.value)}
-          type="number"
-          fullWidth
-        />
-        <FormControlLabel
-          control={
-            <Switch checked={isForSale} onChange={(e) => setIsForSale(e.target.checked)} />
-          }
-          label="For Sale"
-        />
-        <FormControlLabel
-          control={
+    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+        </DialogHeader>
+        <div className="flex flex-col gap-4 mt-2">
+          <div className="space-y-2">
+            <Label>Name</Label>
+            <Input value={name} onChange={(e) => setName(e.target.value)} />
+          </div>
+          {showDescription && (
+            <div className="space-y-2">
+              <Label>Description</Label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={3}
+                className="flex w-full rounded-[10px] border border-input bg-transparent px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring hover:border-primary/40 transition-colors resize-none"
+              />
+            </div>
+          )}
+          <div className="space-y-2">
+            <Label>Price (Robux)</Label>
+            <Input
+              type="number"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+            />
+          </div>
+          <div className="flex items-center justify-between">
+            <Label>For Sale</Label>
+            <Switch checked={isForSale} onCheckedChange={setIsForSale} />
+          </div>
+          <div className="flex items-center justify-between">
+            <Label>Regional Pricing</Label>
             <Switch
               checked={isRegionalPricingEnabled}
-              onChange={(e) => setIsRegionalPricingEnabled(e.target.checked)}
+              onCheckedChange={setIsRegionalPricingEnabled}
             />
-          }
-          label="Regional Pricing"
-        />
-        <Button
-          variant="outlined"
-          component="label"
-          startIcon={<CloudUpload />}
-        >
-          {imageFile ? imageFile.name : "Upload Icon"}
-          <input
-            type="file"
-            hidden
-            accept="image/*"
-            onChange={(e) => setImageFile(e.target.files?.[0] ?? null)}
-          />
-        </Button>
-        {error && <Alert severity="error">{error}</Alert>}
+          </div>
+          <Button variant="outline" className="relative" asChild>
+            <label className="cursor-pointer">
+              <Upload className="h-4 w-4 mr-2" />
+              {imageFile ? imageFile.name : "Upload Icon"}
+              <input
+                type="file"
+                className="hidden"
+                accept="image/*"
+                onChange={(e) => setImageFile(e.target.files?.[0] ?? null)}
+              />
+            </label>
+          </Button>
+          {error && <Alert variant="destructive">{error}</Alert>}
+        </div>
+        <DialogFooter>
+          <Button variant="ghost" onClick={onClose} disabled={saving}>
+            Cancel
+          </Button>
+          <Button onClick={handleSave} disabled={saving}>
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save"}
+          </Button>
+        </DialogFooter>
       </DialogContent>
-      <DialogActions sx={{ px: 3, pb: 2.5 }}>
-        <Button onClick={onClose} disabled={saving}>
-          Cancel
-        </Button>
-        <Button onClick={handleSave} variant="contained" disabled={saving}>
-          {saving ? <CircularProgress size={20} /> : "Save"}
-        </Button>
-      </DialogActions>
     </Dialog>
   );
 }

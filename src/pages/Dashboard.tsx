@@ -1,33 +1,15 @@
 import { useState, useEffect } from "react";
-import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
-import {
-  AppBar,
-  Avatar,
-  Box,
-  Drawer,
-  List,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-  Toolbar,
-  Typography,
-  IconButton,
-} from "@mui/material";
-import {
-  ConfirmationNumber,
-  ShoppingCart,
-  ArrowBack,
-} from "@mui/icons-material";
+import { Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
+import { ArrowLeft, Ticket, ShoppingCart } from "lucide-react";
 import type { AppState } from "../types";
 import { fetchUniverseInfo } from "../api/roblox";
 import Gamepasses from "./Gamepasses";
 import DeveloperProducts from "./DeveloperProducts";
-
-const DRAWER_WIDTH = 260;
+import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
-  { label: "Gamepasses", icon: <ConfirmationNumber />, path: "/dashboard/gamepasses" },
-  { label: "Developer Products", icon: <ShoppingCart />, path: "/dashboard/developer-products" },
+  { label: "Gamepasses", icon: Ticket, path: "/dashboard/gamepasses" },
+  { label: "Developer Products", icon: ShoppingCart, path: "/dashboard/developer-products" },
 ];
 
 interface Props {
@@ -47,134 +29,67 @@ export default function Dashboard({ appState, onBack }: Props) {
   }, [appState.universeId]);
 
   return (
-    <Box sx={{ display: "flex" }}>
-      <AppBar
-        position="fixed"
-        sx={{ zIndex: (t) => t.zIndex.drawer + 1 }}
-      >
-        <Toolbar>
-          <IconButton
-            edge="start"
+    <div>
+      {/* AppBar */}
+      <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-background/80 backdrop-blur-xl border-b border-border">
+        <div className="flex items-center h-full px-4 gap-4">
+          <button
             onClick={onBack}
-            sx={{ mr: 2, color: "text.secondary", "&:hover": { color: "primary.light" } }}
+            className="p-2 rounded-lg text-muted-foreground hover:text-primary-light transition-colors cursor-pointer"
           >
-            <ArrowBack />
-          </IconButton>
-          <Typography
-            variant="h6"
-            noWrap
-            sx={{
-              flexGrow: 1,
-              background: "linear-gradient(135deg, #f0ece0, #e8c56d)",
-              backgroundClip: "text",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-            }}
-          >
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+
+          <h1 className="text-lg font-semibold bg-gradient-to-br from-foreground to-primary-light bg-clip-text text-transparent mr-4">
             {universeInfo.name || appState.experienceName}
-          </Typography>
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 1,
-              px: 1.5,
-              py: 0.5,
-              borderRadius: 2,
-              bgcolor: "rgba(212, 168, 67, 0.1)",
-              border: "1px solid rgba(212, 168, 67, 0.2)",
-            }}
-          >
+          </h1>
+
+          <div className="flex gap-1">
+            {NAV_ITEMS.map((item) => {
+              const selected = location.pathname === item.path;
+              return (
+                <button
+                  key={item.path}
+                  onClick={() => navigate(item.path)}
+                  className={cn(
+                    "flex items-center gap-2 px-3 h-8 rounded-lg text-sm transition-colors cursor-pointer",
+                    selected
+                      ? "bg-primary/12 text-primary-light font-semibold"
+                      : "text-muted-foreground hover:bg-primary/6"
+                  )}
+                >
+                  <item.icon className="h-4 w-4" />
+                  {item.label}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="flex-1" />
+
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/20">
             {universeInfo.iconUrl && (
-              <Avatar
+              <img
                 src={universeInfo.iconUrl}
-                variant="rounded"
-                sx={{ width: 24, height: 24 }}
+                alt=""
+                className="w-6 h-6 rounded object-cover"
               />
             )}
-            <Typography variant="body2" sx={{ color: "text.secondary", fontFamily: "monospace", fontSize: "0.8rem" }}>
+            <span className="text-xs font-mono text-muted-foreground">
               {universeInfo.name || appState.experienceName || `Universe ${appState.universeId}`}
-            </Typography>
-          </Box>
-        </Toolbar>
-      </AppBar>
+            </span>
+          </div>
+        </div>
+      </header>
 
-      <Drawer
-        variant="permanent"
-        sx={{
-          width: DRAWER_WIDTH,
-          flexShrink: 0,
-          "& .MuiDrawer-paper": { width: DRAWER_WIDTH, boxSizing: "border-box" },
-        }}
-      >
-        <Toolbar />
-        <Box sx={{ px: 1, pt: 2 }}>
-          <Typography
-            variant="caption"
-            sx={{
-              px: 1.5,
-              pb: 1,
-              display: "block",
-              color: "text.secondary",
-              textTransform: "uppercase",
-              letterSpacing: "0.08em",
-              fontSize: "0.7rem",
-              fontWeight: 700,
-            }}
-          >
-            Manage
-          </Typography>
-          <List disablePadding>
-            {NAV_ITEMS.map((item) => (
-              <ListItemButton
-                key={item.path}
-                selected={location.pathname === item.path}
-                onClick={() => navigate(item.path)}
-              >
-                <ListItemIcon>{item.icon}</ListItemIcon>
-                <ListItemText
-                  primary={item.label}
-                  primaryTypographyProps={{
-                    fontWeight: location.pathname === item.path ? 600 : 400,
-                    color: location.pathname === item.path ? "primary.light" : "text.secondary",
-                  }}
-                />
-              </ListItemButton>
-            ))}
-          </List>
-        </Box>
-      </Drawer>
-
-      <Box component="main" sx={{ flexGrow: 1, p: 4 }}>
-        <Toolbar />
+      {/* Main content */}
+      <main className="pt-22 px-6 pb-6">
         <Routes>
-          <Route index element={<Placeholder />} />
+          <Route index element={<Navigate to="gamepasses" replace />} />
           <Route path="gamepasses" element={<Gamepasses appState={appState} />} />
           <Route path="developer-products" element={<DeveloperProducts appState={appState} />} />
         </Routes>
-      </Box>
-    </Box>
-  );
-}
-
-function Placeholder() {
-  return (
-    <Box
-      sx={{
-        textAlign: "center",
-        mt: 12,
-        px: 4,
-      }}
-    >
-      <Typography
-        variant="h5"
-        sx={{
-          color: "text.secondary",
-          fontWeight: 500,
-        }}
-      >
-        Select Gamepasses or Developer Products from the sidebar to get started.
-      </Typography>
-    </Box>
+      </main>
+    </div>
   );
 }

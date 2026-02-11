@@ -1,24 +1,17 @@
 import { useState } from "react";
 import {
   Dialog,
-  DialogTitle,
   DialogContent,
-  DialogActions,
-  Button,
-  Box,
-  Typography,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Snackbar,
-  FormControlLabel,
-  Switch,
-} from "@mui/material";
-import { ContentCopy } from "@mui/icons-material";
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+import { useToast } from "@/components/ToastProvider";
+import { Copy } from "lucide-react";
 
 interface ExportItem {
   name: string;
@@ -35,8 +28,8 @@ interface Props {
 }
 
 export default function ExportDialog({ open, onClose, items, title }: Props) {
-  const [copied, setCopied] = useState(false);
   const [includeOffsale, setIncludeOffsale] = useState(false);
+  const { showToast } = useToast();
 
   const filtered = includeOffsale ? items : items.filter((r) => r.isForSale);
 
@@ -52,75 +45,60 @@ export default function ExportDialog({ open, onClose, items, title }: Props) {
     );
     const text = [header, divider, ...lines].join("\n");
     await navigator.clipboard.writeText(text);
-    setCopied(true);
+    showToast("Copied to clipboard");
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle sx={{ fontWeight: 600 }}>{title}</DialogTitle>
-      <DialogContent>
-        <Box sx={{ mt: 1 }}>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
-            <Typography variant="body2" sx={{ color: "text.secondary" }}>
+    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+        </DialogHeader>
+        <div className="mt-2">
+          <div className="flex items-center gap-4 mb-3">
+            <span className="text-sm text-muted-foreground">
               {filtered.length} item{filtered.length !== 1 ? "s" : ""}
-            </Typography>
-            <FormControlLabel
-              control={
-                <Switch
-                  size="small"
-                  checked={includeOffsale}
-                  onChange={(e) => setIncludeOffsale(e.target.checked)}
-                />
-              }
-              label="Include off-sale"
-            />
+            </span>
+            <div className="flex items-center gap-2">
+              <Switch
+                id="include-offsale"
+                checked={includeOffsale}
+                onCheckedChange={setIncludeOffsale}
+              />
+              <Label htmlFor="include-offsale" className="text-sm text-muted-foreground">
+                Include off-sale
+              </Label>
+            </div>
             {filtered.length > 0 && (
-              <Button
-                size="small"
-                startIcon={<ContentCopy />}
-                onClick={handleCopy}
-              >
+              <Button variant="ghost" size="sm" onClick={handleCopy}>
+                <Copy className="h-4 w-4 mr-1" />
                 Copy to Clipboard
               </Button>
             )}
-          </Box>
-          <TableContainer component={Paper} variant="outlined">
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell>Name</TableCell>
-                  <TableCell>ID</TableCell>
-                  <TableCell align="right">Price</TableCell>
+          </div>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>ID</TableHead>
+                <TableHead className="text-right">Price</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filtered.map((r, i) => (
+                <TableRow key={i}>
+                  <TableCell>{r.name}</TableCell>
+                  <TableCell className="font-mono text-xs">{r.id}</TableCell>
+                  <TableCell className="text-right">R$ {r.price.toLocaleString()}</TableCell>
                 </TableRow>
-              </TableHead>
-              <TableBody>
-                {filtered.map((r, i) => (
-                  <TableRow key={i}>
-                    <TableCell>{r.name}</TableCell>
-                    <TableCell
-                      sx={{ fontFamily: "monospace", fontSize: "0.8rem" }}
-                    >
-                      {r.id}
-                    </TableCell>
-                    <TableCell align="right">
-                      R$ {r.price.toLocaleString()}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Box>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+        <DialogFooter>
+          <Button variant="ghost" onClick={onClose}>Done</Button>
+        </DialogFooter>
       </DialogContent>
-      <DialogActions sx={{ px: 3, pb: 2.5 }}>
-        <Button onClick={onClose}>Done</Button>
-      </DialogActions>
-      <Snackbar
-        open={copied}
-        autoHideDuration={2000}
-        onClose={() => setCopied(false)}
-        message="Copied to clipboard"
-      />
     </Dialog>
   );
 }
