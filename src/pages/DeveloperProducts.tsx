@@ -6,7 +6,7 @@ import {
   CircularProgress,
   Alert,
 } from "@mui/material";
-import { Add, OpenInNew, Refresh } from "@mui/icons-material";
+import { Add, OpenInNew, Refresh, ContentCopy } from "@mui/icons-material";
 import type { AppState, DeveloperProduct } from "../types";
 import {
   listDeveloperProducts,
@@ -16,6 +16,7 @@ import {
 import ItemCard from "../components/ItemCard";
 import EditDialog from "../components/EditDialog";
 import BulkCreateDialog from "../components/BulkCreateDialog";
+import ExportDialog from "../components/ExportDialog";
 
 interface Props {
   appState: AppState;
@@ -30,6 +31,7 @@ export default function DeveloperProducts({ appState }: Props) {
 
   const [editTarget, setEditTarget] = useState<DeveloperProduct | null>(null);
   const [bulkOpen, setBulkOpen] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
 
   const fetchProducts = useCallback(async () => {
     setLoading(true);
@@ -92,6 +94,14 @@ export default function DeveloperProducts({ appState }: Props) {
           size="small"
         >
           Refresh
+        </Button>
+        <Button
+          startIcon={<ContentCopy />}
+          onClick={() => setExportOpen(true)}
+          disabled={loading || products.length === 0}
+          size="small"
+        >
+          Copy All
         </Button>
         <Button
           variant="contained"
@@ -173,6 +183,13 @@ export default function DeveloperProducts({ appState }: Props) {
         onCreate={handleBulkCreate}
         title="Bulk Create Developer Products"
         showDescription={false}
+      />
+
+      <ExportDialog
+        open={exportOpen}
+        onClose={() => setExportOpen(false)}
+        items={products.map((dp) => ({ name: dp.name, id: dp.id, price: dp.price }))}
+        title="All Developer Products"
       />
     </Box>
   );

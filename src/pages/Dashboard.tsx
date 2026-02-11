@@ -1,6 +1,8 @@
+import { useState, useEffect } from "react";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import {
   AppBar,
+  Avatar,
   Box,
   Drawer,
   List,
@@ -17,6 +19,7 @@ import {
   ArrowBack,
 } from "@mui/icons-material";
 import type { AppState } from "../types";
+import { fetchUniverseInfo } from "../api/roblox";
 import Gamepasses from "./Gamepasses";
 import DeveloperProducts from "./DeveloperProducts";
 
@@ -35,6 +38,13 @@ interface Props {
 export default function Dashboard({ appState, onBack }: Props) {
   const navigate = useNavigate();
   const location = useLocation();
+  const [universeInfo, setUniverseInfo] = useState<{ name: string; iconUrl: string }>({ name: "", iconUrl: "" });
+
+  useEffect(() => {
+    fetchUniverseInfo(appState.universeId)
+      .then(setUniverseInfo)
+      .catch(() => {});
+  }, [appState.universeId]);
 
   return (
     <Box sx={{ display: "flex" }}>
@@ -61,10 +71,13 @@ export default function Dashboard({ appState, onBack }: Props) {
               WebkitTextFillColor: "transparent",
             }}
           >
-            {appState.experienceName}
+            {universeInfo.name || appState.experienceName}
           </Typography>
           <Box
             sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
               px: 1.5,
               py: 0.5,
               borderRadius: 2,
@@ -72,8 +85,15 @@ export default function Dashboard({ appState, onBack }: Props) {
               border: "1px solid rgba(212, 168, 67, 0.2)",
             }}
           >
+            {universeInfo.iconUrl && (
+              <Avatar
+                src={universeInfo.iconUrl}
+                variant="rounded"
+                sx={{ width: 24, height: 24 }}
+              />
+            )}
             <Typography variant="body2" sx={{ color: "text.secondary", fontFamily: "monospace", fontSize: "0.8rem" }}>
-              Universe {appState.universeId}
+              {universeInfo.name || appState.experienceName || `Universe ${appState.universeId}`}
             </Typography>
           </Box>
         </Toolbar>

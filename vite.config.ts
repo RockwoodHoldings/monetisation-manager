@@ -15,6 +15,11 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/thumbnails/, ""),
       },
+      "/api/games": {
+        target: "https://games.roblox.com",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/games/, ""),
+      },
     },
   },
 });

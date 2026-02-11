@@ -7,6 +7,7 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 const ROBLOX_API = "https://apis.roblox.com";
 const THUMBNAILS_API = "https://thumbnails.roblox.com";
+const GAMES_API = "https://games.roblox.com";
 
 app.use(cors());
 
@@ -28,6 +29,27 @@ app.all("/api/thumbnails/*", async (req, res) => {
   } catch (err) {
     console.error("Thumbnails proxy error:", err);
     res.status(502).json({ error: "Failed to proxy request to Roblox Thumbnails API" });
+  }
+});
+
+// Proxy /api/games/* to games.roblox.com (public API, no auth needed)
+app.all("/api/games/*", async (req, res) => {
+  const gamesPath = req.originalUrl.replace(/^\/api\/games/, "");
+  const targetUrl = `${GAMES_API}${gamesPath}`;
+
+  try {
+    const response = await fetch(targetUrl, { method: "GET" });
+    res.status(response.status);
+    response.headers.forEach((value, key) => {
+      if (key.toLowerCase() !== "transfer-encoding") {
+        res.setHeader(key, value);
+      }
+    });
+    const responseBody = await response.arrayBuffer();
+    res.send(Buffer.from(responseBody));
+  } catch (err) {
+    console.error("Games proxy error:", err);
+    res.status(502).json({ error: "Failed to proxy request to Roblox Games API" });
   }
 });
 

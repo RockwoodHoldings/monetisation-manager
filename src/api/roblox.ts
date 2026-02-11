@@ -112,6 +112,92 @@ async function fetchDevProductIcons(
   return iconMap;
 }
 
+// ── Universe Info ────────────────────────────────────────────────────────
+
+interface GamesApiResponse {
+  data: { id: number; name: string; rootPlaceId: number }[];
+}
+
+interface PlaceDetailsResponse {
+  placeId: number;
+  name: string;
+}
+
+export async function fetchUniverseInfo(
+  universeId: string
+): Promise<{ name: string; iconUrl: string }> {
+  // Fetch universe info and icon in parallel
+  const [universeResult, iconResult] = await Promise.allSettled([
+    fetch(`/api/games/v1/games?universeIds=${universeId}`).then((r) =>
+      r.ok ? (r.json() as Promise<GamesApiResponse>) : null
+    ),
+    fetch(
+      `/api/thumbnails/v1/games/icons?universeIds=${universeId}&size=150x150&format=Png`
+    ).then((r) =>
+      r.ok ? (r.json() as Promise<ThumbnailResponse>) : null
+    ),
+  ]);
+
+  const universeData =
+    universeResult.status === "fulfilled" ? universeResult.value : null;
+  const iconData =
+    iconResult.status === "fulfilled" ? iconResult.value : null;
+
+  const iconUrl =
+    iconData?.data?.find(
+      (d) => d.state === "Completed" && d.imageUrl
+    )?.imageUrl ?? "";
+
+  // Try to get the start place name
+  const rootPlaceId = universeData?.data?.[0]?.rootPlaceId;
+  if (rootPlaceId) {
+    try {
+      const placeRes = await fetch(
+        `/api/games/v1/games/multiget-place-details?placeIds=${rootPlaceId}`
+      );
+      if (placeRes.ok) {
+        const placeData: PlaceDetailsResponse[] = await placeRes.json();
+        if (placeData[0]?.name) {
+          return { name: placeData[0].name, iconUrl };
+        }
+      }
+    } catch {
+      // Fall through to universe name
+    }
+  }
+
+  // Fallback to universe name
+  const name = universeData?.data?.[0]?.name ?? "";
+  return { name, iconUrl };
+}
+
+export async function fetchUniverseIcons(
+  universeIds: string[]
+): Promise<Map<string, string>> {
+  const iconMap = new Map<string, string>();
+  if (universeIds.length === 0) return iconMap;
+
+  const params = new URLSearchParams({
+    universeIds: universeIds.join(","),
+    size: "150x150",
+    format: "Png",
+  });
+  try {
+    const res = await fetch(`/api/thumbnails/v1/games/icons?${params}`);
+    if (res.ok) {
+      const data: ThumbnailResponse = await res.json();
+      for (const item of data.data) {
+        if (item.state === "Completed" && item.imageUrl) {
+          iconMap.set(String(item.targetId), item.imageUrl);
+        }
+      }
+    }
+  } catch {
+    // Ignore icon fetch failures
+  }
+  return iconMap;
+}
+
 // ── Game Passes ──────────────────────────────────────────────────────────
 
 interface ListGamePassesResponse {

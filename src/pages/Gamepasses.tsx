@@ -6,12 +6,13 @@ import {
   CircularProgress,
   Alert,
 } from "@mui/material";
-import { Add, OpenInNew, Refresh } from "@mui/icons-material";
+import { Add, OpenInNew, Refresh, ContentCopy } from "@mui/icons-material";
 import type { AppState, GamePass } from "../types";
 import { listGamePasses, createGamePass, updateGamePass } from "../api/roblox";
 import ItemCard from "../components/ItemCard";
 import EditDialog from "../components/EditDialog";
 import BulkCreateDialog from "../components/BulkCreateDialog";
+import ExportDialog from "../components/ExportDialog";
 
 interface Props {
   appState: AppState;
@@ -26,6 +27,7 @@ export default function Gamepasses({ appState }: Props) {
 
   const [editTarget, setEditTarget] = useState<GamePass | null>(null);
   const [bulkOpen, setBulkOpen] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
 
   const fetchPasses = useCallback(async () => {
     setLoading(true);
@@ -89,6 +91,14 @@ export default function Gamepasses({ appState }: Props) {
           size="small"
         >
           Refresh
+        </Button>
+        <Button
+          startIcon={<ContentCopy />}
+          onClick={() => setExportOpen(true)}
+          disabled={loading || passes.length === 0}
+          size="small"
+        >
+          Copy All
         </Button>
         <Button
           variant="contained"
@@ -171,6 +181,13 @@ export default function Gamepasses({ appState }: Props) {
         onCreate={handleBulkCreate}
         title="Bulk Create Gamepasses"
         showDescription
+      />
+
+      <ExportDialog
+        open={exportOpen}
+        onClose={() => setExportOpen(false)}
+        items={passes.map((gp) => ({ name: gp.name, id: gp.id, price: gp.price }))}
+        title="All Gamepasses"
       />
     </Box>
   );

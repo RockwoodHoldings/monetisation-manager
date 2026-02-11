@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -13,6 +13,7 @@ import {
   Card,
   CardActionArea,
   CardContent,
+  CardMedia,
   Divider,
   FormControlLabel,
   Checkbox,
@@ -29,6 +30,7 @@ import {
 } from "@mui/icons-material";
 import type { AppState } from "../types";
 import { getSessions, saveSession, deleteSession, getSavedKeys, addSavedKey, deleteSavedKey } from "../sessions";
+import { fetchUniverseInfo } from "../api/roblox";
 
 interface Props {
   appState: AppState;
@@ -47,6 +49,47 @@ export default function Setup({ appState, setAppState }: Props) {
   const [selectedKeyId, setSelectedKeyId] = useState<string>("");
   const [saveKey, setSaveKey] = useState(false);
   const [keyLabel, setKeyLabel] = useState("");
+  const [sessionInfo, setSessionInfo] = useState<Map<string, { name: string; iconUrl: string }>>(new Map());
+  const nameManuallyEdited = useRef(false);
+
+  // Fetch session info (names + icons) on mount
+  useEffect(() => {
+    const ids = [...new Set(sessions.map((s) => s.universeId))];
+    if (ids.length === 0) return;
+    let cancelled = false;
+    Promise.all(ids.map((id) => fetchUniverseInfo(id).then((info) => [id, info] as const)))
+      .then((entries) => {
+        if (cancelled) return;
+        const map = new Map<string, { name: string; iconUrl: string }>();
+        for (const [id, info] of entries) {
+          map.set(id, info);
+        }
+        setSessionInfo(map);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [sessions]);
+
+  // Auto-fetch universe name when universe ID changes
+  useEffect(() => {
+    if (nameManuallyEdited.current) return;
+    const id = universeId.trim();
+    if (!id || isNaN(Number(id))) return;
+
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      fetchUniverseInfo(id).then((info) => {
+        if (!cancelled && info.name) {
+          setExperienceName(info.name);
+        }
+      }).catch(() => {});
+    }, 500);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [universeId]);
 
   const handleSubmit = () => {
     if (!apiKey.trim()) {
@@ -157,10 +200,18 @@ export default function Setup({ appState, setAppState }: Props) {
                   }}
                 >
                   <Box sx={{ display: "flex", alignItems: "stretch" }}>
+                    {sessionInfo.get(s.universeId)?.iconUrl && (
+                      <CardMedia
+                        component="img"
+                        sx={{ width: 56, height: 56, objectFit: "cover", m: 1, borderRadius: 1.5, flexShrink: 0, alignSelf: "center" }}
+                        image={sessionInfo.get(s.universeId)!.iconUrl}
+                        alt={s.experienceName}
+                      />
+                    )}
                     <CardActionArea onClick={() => handleSessionClick(s)} sx={{ flex: 1 }}>
                       <CardContent sx={{ py: 1.5, "&:last-child": { pb: 1.5 } }}>
                         <Typography variant="subtitle1" fontWeight={600} sx={{ color: "text.primary" }}>
-                          {s.experienceName}
+                          {sessionInfo.get(s.universeId)?.name || s.experienceName}
                         </Typography>
                         <Typography variant="body2" sx={{ color: "text.secondary" }}>
                           Universe {s.universeId} &middot;{" "}
@@ -319,9 +370,12 @@ export default function Setup({ appState, setAppState }: Props) {
           <TextField
             label="Experience Name (optional)"
             value={experienceName}
-            onChange={(e) => setExperienceName(e.target.value)}
+            onChange={(e) => {
+              setExperienceName(e.target.value);
+              nameManuallyEdited.current = true;
+            }}
             fullWidth
-            helperText="A friendly label so you know which game you're editing"
+            helperText="Auto-filled from Roblox, or enter a friendly label"
           />
 
           {error && <Alert severity="error">{error}</Alert>}
