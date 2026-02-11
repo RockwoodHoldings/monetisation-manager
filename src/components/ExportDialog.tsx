@@ -15,6 +15,8 @@ import {
   TableHead,
   TableRow,
   Snackbar,
+  FormControlLabel,
+  Switch,
 } from "@mui/material";
 import { ContentCopy } from "@mui/icons-material";
 
@@ -22,6 +24,7 @@ interface ExportItem {
   name: string;
   id: string;
   price: number;
+  isForSale: boolean;
 }
 
 interface Props {
@@ -33,9 +36,12 @@ interface Props {
 
 export default function ExportDialog({ open, onClose, items, title }: Props) {
   const [copied, setCopied] = useState(false);
+  const [includeOffsale, setIncludeOffsale] = useState(false);
+
+  const filtered = includeOffsale ? items : items.filter((r) => r.isForSale);
 
   const handleCopy = async () => {
-    const lines = items.map((r) => `${r.name}\t${r.id}\t${r.price}`);
+    const lines = filtered.map((r) => `${r.name}\t${r.id}\t${r.price}`);
     const text = `Name\tID\tPrice\n${lines.join("\n")}`;
     await navigator.clipboard.writeText(text);
     setCopied(true);
@@ -48,9 +54,19 @@ export default function ExportDialog({ open, onClose, items, title }: Props) {
         <Box sx={{ mt: 1 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
             <Typography variant="body2" sx={{ color: "text.secondary" }}>
-              {items.length} item{items.length !== 1 ? "s" : ""}
+              {filtered.length} item{filtered.length !== 1 ? "s" : ""}
             </Typography>
-            {items.length > 0 && (
+            <FormControlLabel
+              control={
+                <Switch
+                  size="small"
+                  checked={includeOffsale}
+                  onChange={(e) => setIncludeOffsale(e.target.checked)}
+                />
+              }
+              label="Include off-sale"
+            />
+            {filtered.length > 0 && (
               <Button
                 size="small"
                 startIcon={<ContentCopy />}
@@ -70,7 +86,7 @@ export default function ExportDialog({ open, onClose, items, title }: Props) {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {items.map((r, i) => (
+                {filtered.map((r, i) => (
                   <TableRow key={i}>
                     <TableCell>{r.name}</TableCell>
                     <TableCell

@@ -188,7 +188,7 @@ export default function DeveloperProducts({ appState }: Props) {
       <ExportDialog
         open={exportOpen}
         onClose={() => setExportOpen(false)}
-        items={products.map((dp) => ({ name: dp.name, id: dp.id, price: dp.price }))}
+        items={products.map((dp) => ({ name: dp.name, id: dp.id, price: dp.price, isForSale: dp.isForSale }))}
         title="All Developer Products"
       />
     </Box>

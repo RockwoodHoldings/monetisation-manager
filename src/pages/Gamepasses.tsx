@@ -186,7 +186,7 @@ export default function Gamepasses({ appState }: Props) {
       <ExportDialog
         open={exportOpen}
         onClose={() => setExportOpen(false)}
-        items={passes.map((gp) => ({ name: gp.name, id: gp.id, price: gp.price }))}
+        items={passes.map((gp) => ({ name: gp.name, id: gp.id, price: gp.price, isForSale: gp.isForSale }))}
         title="All Gamepasses"
       />
     </Box>
