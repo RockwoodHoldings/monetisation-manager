@@ -1,12 +1,26 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import {
   Box,
   Typography,
   Button,
   CircularProgress,
   Alert,
+  ToggleButton,
+  ToggleButtonGroup,
+  IconButton,
 } from "@mui/material";
-import { Add, OpenInNew, Refresh, ContentCopy } from "@mui/icons-material";
+import {
+  Add,
+  OpenInNew,
+  Refresh,
+  ContentCopy,
+  ArrowUpward,
+  ArrowDownward,
+  ChevronLeft,
+  ChevronRight,
+  ViewList,
+  GridView,
+} from "@mui/icons-material";
 import type { AppState, GamePass } from "../types";
 import { listGamePasses, createGamePass, updateGamePass } from "../api/roblox";
 import ItemCard from "../components/ItemCard";
@@ -29,6 +43,11 @@ export default function Gamepasses({ appState }: Props) {
   const [bulkOpen, setBulkOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
 
+  const [pageSize, setPageSize] = useState(10);
+  const [page, setPage] = useState(0);
+  const [sortPrice, setSortPrice] = useState<"asc" | "desc" | null>(null);
+  const [viewMode, setViewMode] = useState<"list" | "grid">("list");
+
   const fetchPasses = useCallback(async () => {
     setLoading(true);
     setError("");
@@ -45,6 +64,20 @@ export default function Gamepasses({ appState }: Props) {
   useEffect(() => {
     fetchPasses();
   }, [fetchPasses]);
+
+  const sorted = useMemo(() => {
+    if (!sortPrice) return passes;
+    return [...passes].sort((a, b) =>
+      sortPrice === "desc" ? b.price - a.price : a.price - b.price
+    );
+  }, [passes, sortPrice]);
+
+  const totalPages = Math.max(1, Math.ceil(sorted.length / pageSize));
+  const safePage = Math.min(page, totalPages - 1);
+  const paged = sorted.slice(safePage * pageSize, (safePage + 1) * pageSize);
+
+  // Reset page when sort or pageSize changes
+  useEffect(() => { setPage(0); }, [sortPrice, pageSize]);
 
   const handleEditSave = async (data: {
     name: string;
@@ -119,9 +152,58 @@ export default function Gamepasses({ appState }: Props) {
           Manage on Roblox
         </Button>
       </Box>
-      <Typography variant="body2" sx={{ mb: 3, color: "text.secondary" }}>
+      <Typography variant="body2" sx={{ mb: 2, color: "text.secondary" }}>
         Deletion is only available via the Roblox Creator Dashboard.
       </Typography>
+
+      {/* Controls bar */}
+      {!loading && passes.length > 0 && (
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
+          <Button
+            size="small"
+            variant={sortPrice ? "contained" : "outlined"}
+            startIcon={sortPrice === "asc" ? <ArrowUpward /> : <ArrowDownward />}
+            onClick={() =>
+              setSortPrice((prev) =>
+                prev === null ? "desc" : prev === "desc" ? "asc" : null
+              )
+            }
+            sx={{ minWidth: 120 }}
+          >
+            {sortPrice === "desc"
+              ? "High → Low"
+              : sortPrice === "asc"
+                ? "Low → High"
+                : "Price"}
+          </Button>
+
+          <Box sx={{ flex: 1 }} />
+
+          <Typography variant="body2" sx={{ color: "text.secondary" }}>
+            Per page:
+          </Typography>
+          <ToggleButtonGroup
+            size="small"
+            value={pageSize}
+            exclusive
+            onChange={(_, v) => v !== null && setPageSize(v)}
+          >
+            <ToggleButton value={10}>10</ToggleButton>
+            <ToggleButton value={20}>20</ToggleButton>
+            <ToggleButton value={50}>50</ToggleButton>
+          </ToggleButtonGroup>
+
+          <ToggleButtonGroup
+            size="small"
+            value={viewMode}
+            exclusive
+            onChange={(_, v) => v !== null && setViewMode(v)}
+          >
+            <ToggleButton value="list"><ViewList fontSize="small" /></ToggleButton>
+            <ToggleButton value="grid"><GridView fontSize="small" /></ToggleButton>
+          </ToggleButtonGroup>
+        </Box>
+      )}
 
       {loading && (
         <Box sx={{ textAlign: "center", py: 8 }}>
@@ -141,8 +223,18 @@ export default function Gamepasses({ appState }: Props) {
         </Alert>
       )}
 
-      <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
-        {passes.map((gp) => (
+      <Box
+        sx={
+          viewMode === "grid"
+            ? {
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
+                gap: 2,
+              }
+            : { display: "flex", flexDirection: "column", gap: 1.5 }
+        }
+      >
+        {paged.map((gp) => (
           <ItemCard
             key={gp.id}
             name={gp.name}
@@ -151,9 +243,41 @@ export default function Gamepasses({ appState }: Props) {
             isForSale={gp.isForSale}
             iconUrl={gp.iconUrl}
             onEdit={() => setEditTarget(gp)}
+            view={viewMode}
           />
         ))}
       </Box>
+
+      {/* Pagination */}
+      {!loading && totalPages > 1 && (
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 1,
+            mt: 3,
+          }}
+        >
+          <IconButton
+            size="small"
+            disabled={safePage === 0}
+            onClick={() => setPage(safePage - 1)}
+          >
+            <ChevronLeft />
+          </IconButton>
+          <Typography variant="body2" sx={{ color: "text.secondary", minWidth: 80, textAlign: "center" }}>
+            Page {safePage + 1} of {totalPages}
+          </Typography>
+          <IconButton
+            size="small"
+            disabled={safePage >= totalPages - 1}
+            onClick={() => setPage(safePage + 1)}
+          >
+            <ChevronRight />
+          </IconButton>
+        </Box>
+      )}
 
       {editTarget && (
         <EditDialog
