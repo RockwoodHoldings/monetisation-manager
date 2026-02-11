@@ -40,7 +40,7 @@ export default function Dashboard({ appState, onBack }: Props) {
             <ArrowLeft className="h-5 w-5" />
           </button>
 
-          <h1 className="text-lg font-semibold bg-gradient-to-br from-foreground to-primary-light bg-clip-text text-transparent mr-4">
+          <h1 className="text-lg font-semibold bg-gradient-to-br from-foreground to-primary-light bg-clip-text text-transparent mr-4 truncate max-w-[120px] sm:max-w-none">
             {universeInfo.name || appState.experienceName}
           </h1>
 
@@ -67,7 +67,7 @@ export default function Dashboard({ appState, onBack }: Props) {
 
           <div className="flex-1" />
 
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/20">
+          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/20">
             {universeInfo.iconUrl && (
               <img
                 src={universeInfo.iconUrl}
@@ -83,7 +83,7 @@ export default function Dashboard({ appState, onBack }: Props) {
       </header>
 
       {/* Main content */}
-      <main className="pt-22 px-6 pb-6">
+      <main className="pt-22 px-3 sm:px-6 pb-6">
         <Routes>
           <Route index element={<Navigate to="gamepasses" replace />} />
           <Route path="gamepasses" element={<Gamepasses appState={appState} />} />

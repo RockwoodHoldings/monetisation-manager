@@ -129,15 +129,15 @@ export default function Gamepasses({ appState }: Props) {
 
   return (
     <div>
-      <div className="flex items-center gap-3 mb-2">
-        <h2 className="text-2xl font-bold text-foreground flex-1">Gamepasses</h2>
+      <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
+        <h2 className="text-2xl font-bold text-foreground flex-1 min-w-0">Gamepasses</h2>
         <Button variant="ghost" size="sm" onClick={fetchPasses} disabled={loading}>
-          <RefreshCw className="h-4 w-4 mr-1" />
-          Refresh
+          <RefreshCw className="h-4 w-4 sm:mr-1" />
+          <span className="hidden sm:inline">Refresh</span>
         </Button>
         <Button variant="ghost" size="sm" onClick={() => setExportOpen(true)} disabled={loading || passes.length === 0}>
-          <Copy className="h-4 w-4 mr-1" />
-          Copy All
+          <Copy className="h-4 w-4 sm:mr-1" />
+          <span className="hidden sm:inline">Copy All</span>
         </Button>
         <Button size="sm" onClick={() => setBulkOpen(true)}>
           <Plus className="h-4 w-4 mr-1" />
@@ -145,8 +145,8 @@ export default function Gamepasses({ appState }: Props) {
         </Button>
         <Button variant="outline" size="sm" asChild>
           <a href={dashboardUrl} target="_blank" rel="noopener">
-            <ExternalLink className="h-4 w-4 mr-1" />
-            Manage on Roblox
+            <ExternalLink className="h-4 w-4 sm:mr-1" />
+            <span className="hidden sm:inline">Manage on Roblox</span>
           </a>
         </Button>
       </div>
@@ -156,8 +156,8 @@ export default function Gamepasses({ appState }: Props) {
 
       {/* Controls bar */}
       {!loading && passes.length > 0 && (
-        <div className="flex items-center gap-3 mb-4">
-          <div className="relative min-w-[180px]">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-4">
+          <div className="relative w-full sm:w-auto sm:min-w-[180px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search..."
@@ -196,8 +196,8 @@ export default function Gamepasses({ appState }: Props) {
 
           <div className="flex-1" />
 
-          <span className="text-sm text-muted-foreground">Per page:</span>
-          <ToggleGroup type="single" value={String(pageSize)} onValueChange={(v) => v && setPageSize(Number(v))}>
+          <span className="hidden sm:inline text-sm text-muted-foreground">Per page:</span>
+          <ToggleGroup className="hidden sm:flex" type="single" value={String(pageSize)} onValueChange={(v) => v && setPageSize(Number(v))}>
             <ToggleGroupItem value="10">10</ToggleGroupItem>
             <ToggleGroupItem value="20">20</ToggleGroupItem>
             <ToggleGroupItem value="50">50</ToggleGroupItem>
@@ -227,7 +227,7 @@ export default function Gamepasses({ appState }: Props) {
       <div
         className={
           viewMode === "grid"
-            ? "grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3"
+            ? "grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] sm:grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3"
             : "flex flex-col gap-3"
         }
       >

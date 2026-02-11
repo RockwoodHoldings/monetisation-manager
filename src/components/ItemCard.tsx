@@ -75,10 +75,10 @@ export default function ItemCard({
         <img
           src={iconUrl}
           alt={name}
-          className="w-[72px] h-[72px] object-cover m-3 rounded-lg"
+          className="w-[56px] h-[56px] sm:w-[72px] sm:h-[72px] object-cover m-2 sm:m-3 rounded-lg"
         />
       ) : (
-        <div className="w-[72px] h-[72px] m-3 rounded-lg bg-primary/8 border border-primary/15 flex items-center justify-center">
+        <div className="w-[56px] h-[56px] sm:w-[72px] sm:h-[72px] m-2 sm:m-3 rounded-lg bg-primary/8 border border-primary/15 flex items-center justify-center">
           <span className="text-[0.65rem] text-muted-foreground">No icon</span>
         </div>
       )}
