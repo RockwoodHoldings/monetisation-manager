@@ -41,8 +41,16 @@ export default function ExportDialog({ open, onClose, items, title }: Props) {
   const filtered = includeOffsale ? items : items.filter((r) => r.isForSale);
 
   const handleCopy = async () => {
-    const lines = filtered.map((r) => `${r.name}\t${r.id}\t${r.price}`);
-    const text = `Name\tID\tPrice\n${lines.join("\n")}`;
+    const nameW = Math.max(4, ...filtered.map((r) => r.name.length));
+    const idW = Math.max(2, ...filtered.map((r) => r.id.length));
+    const priceW = Math.max(5, ...filtered.map((r) => `R$ ${r.price.toLocaleString()}`.length));
+    const pad = (s: string, w: number) => s + " ".repeat(Math.max(0, w - s.length));
+    const header = `${pad("Name", nameW)}  ${pad("ID", idW)}  ${pad("Price", priceW)}`;
+    const divider = `${"-".repeat(nameW)}  ${"-".repeat(idW)}  ${"-".repeat(priceW)}`;
+    const lines = filtered.map(
+      (r) => `${pad(r.name, nameW)}  ${pad(r.id, idW)}  R$ ${r.price.toLocaleString()}`
+    );
+    const text = [header, divider, ...lines].join("\n");
     await navigator.clipboard.writeText(text);
     setCopied(true);
   };
