@@ -14,6 +14,12 @@
   status = 200
   force = true
 
+[[redirects]]
+  from = "/api/games/*"
+  to = "https://games.roblox.com/:splat"
+  status = 200
+  force = true
+
 # SPA client-side routing fallback
 [[redirects]]
   from = "/*"
