@@ -27,6 +27,35 @@ function delay(ms: number) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
+// ── Icon Cache ──────────────────────────────────────────────────────────
+
+const ICON_CACHE_TTL = 10 * 60 * 1000; // 10 minutes
+
+interface CacheEntry {
+  url: string;
+  expires: number;
+}
+
+const iconCache = new Map<string, CacheEntry>();
+
+function getCachedIcon(key: string): string | undefined {
+  const entry = iconCache.get(key);
+  if (!entry) return undefined;
+  if (Date.now() > entry.expires) {
+    iconCache.delete(key);
+    return undefined;
+  }
+  return entry.url;
+}
+
+function setCachedIcon(key: string, url: string): void {
+  iconCache.set(key, { url, expires: Date.now() + ICON_CACHE_TTL });
+}
+
+function invalidateCachedIcon(key: string): void {
+  iconCache.delete(key);
+}
+
 // ── Icons (Thumbnails API) ───────────────────────────────────────────────
 
 interface ThumbnailResponse {
@@ -39,9 +68,21 @@ async function fetchGamePassIcons(
   const iconMap = new Map<string, string>();
   if (ids.length === 0) return iconMap;
 
+  // Check cache first, collect uncached IDs
+  const uncached: string[] = [];
+  for (const id of ids) {
+    const cached = getCachedIcon(`gp:${id}`);
+    if (cached) {
+      iconMap.set(id, cached);
+    } else {
+      uncached.push(id);
+    }
+  }
+  if (uncached.length === 0) return iconMap;
+
   // Batch in groups of 100 (API limit)
-  for (let i = 0; i < ids.length; i += 100) {
-    const batch = ids.slice(i, i + 100);
+  for (let i = 0; i < uncached.length; i += 100) {
+    const batch = uncached.slice(i, i + 100);
     const params = new URLSearchParams({
       gamePassIds: batch.join(","),
       size: "150x150",
@@ -53,14 +94,16 @@ async function fetchGamePassIcons(
         const data: ThumbnailResponse = await res.json();
         for (const item of data.data) {
           if (item.state === "Completed" && item.imageUrl) {
-            iconMap.set(String(item.targetId), item.imageUrl);
+            const id = String(item.targetId);
+            iconMap.set(id, item.imageUrl);
+            setCachedIcon(`gp:${id}`, item.imageUrl);
           }
         }
       }
     } catch {
       // Ignore icon fetch failures
     }
-    if (i + 100 < ids.length) await delay(250);
+    if (i + 100 < uncached.length) await delay(250);
   }
   return iconMap;
 }
@@ -71,11 +114,14 @@ async function fetchDevProductIcons(
 ): Promise<Map<string, string>> {
   const iconMap = new Map<string, string>();
 
-  // Build parallel arrays of valid (dpId, assetId) pairs
+  // Build parallel arrays of valid (dpId, assetId) pairs, checking cache first
   const validIds: string[] = [];
   const validAssetIds: number[] = [];
   for (let i = 0; i < ids.length; i++) {
-    if (iconImageAssetIds[i]) {
+    const cached = getCachedIcon(`dp:${ids[i]}`);
+    if (cached) {
+      iconMap.set(ids[i], cached);
+    } else if (iconImageAssetIds[i]) {
       validIds.push(ids[i]);
       validAssetIds.push(iconImageAssetIds[i]!);
     }
@@ -100,6 +146,7 @@ async function fetchDevProductIcons(
             const idx = batchAssetIds.indexOf(item.targetId);
             if (idx !== -1) {
               iconMap.set(batchDpIds[idx], item.imageUrl);
+              setCachedIcon(`dp:${batchDpIds[idx]}`, item.imageUrl);
             }
           }
         }
@@ -325,6 +372,8 @@ export async function updateGamePass(
     `/game-passes/v1/universes/${universeId}/game-passes/${passId}`,
     { method: "PATCH", body: form }
   );
+
+  if (data.imageFile) invalidateCachedIcon(`gp:${passId}`);
 }
 
 // ── Developer Products ───────────────────────────────────────────────────
@@ -451,4 +500,6 @@ export async function updateDeveloperProduct(
     `/developer-products/v2/universes/${universeId}/developer-products/${productId}`,
     { method: "PATCH", body: form }
   );
+
+  if (data.imageFile) invalidateCachedIcon(`dp:${productId}`);
 }

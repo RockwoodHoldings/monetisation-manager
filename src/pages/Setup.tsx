@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Eye, EyeOff, Rocket, Trash2, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,7 +38,7 @@ export default function Setup({ appState, setAppState }: Props) {
   const [saveKey, setSaveKey] = useState(false);
   const [keyLabel, setKeyLabel] = useState("");
   const [sessionInfo, setSessionInfo] = useState<Map<string, { name: string; iconUrl: string }>>(new Map());
-  const [sessionsOpen, setSessionsOpen] = useState(true);
+  const [sessionsOpen, setSessionsOpen] = useState(false);
   const nameManuallyEdited = useRef(false);
 
   useEffect(() => {
@@ -116,15 +116,16 @@ export default function Setup({ appState, setAppState }: Props) {
   };
 
   const handleSessionClick = (session: (typeof sessions)[0]) => {
+    const resolvedName = sessionInfo.get(session.universeId)?.name || session.experienceName;
     saveSession({
       apiKey: session.apiKey,
       universeId: session.universeId,
-      experienceName: session.experienceName,
+      experienceName: resolvedName,
     });
     setAppState({
       apiKey: session.apiKey,
       universeId: session.universeId,
-      experienceName: session.experienceName,
+      experienceName: resolvedName,
     });
     navigate("/dashboard");
   };
@@ -280,7 +281,10 @@ export default function Setup({ appState, setAppState }: Props) {
             </button>
           </div>
           <p className="text-xs text-muted-foreground">
-            Create one at create.roblox.com &rarr; Credentials &rarr; API Keys
+            Don't have one?{" "}
+            <Link to="/guide" className="text-primary-light underline underline-offset-2 hover:text-primary transition-colors">
+              Learn how to create an API key
+            </Link>
           </p>
         </div>
 

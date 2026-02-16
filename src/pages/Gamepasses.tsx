@@ -45,7 +45,7 @@ export default function Gamepasses({ appState }: Props) {
   const [pageSize, setPageSize] = useState(10);
   const [page, setPage] = useState(0);
   const [sortPrice, setSortPrice] = useState<"asc" | "desc" | null>(null);
-  const [viewMode, setViewMode] = useState<"list" | "grid">("list");
+  const [viewMode, setViewMode] = useState<"list" | "grid">("grid");
   const [search, setSearch] = useState("");
   const [hideOffsale, setHideOffsale] = useState(false);
 

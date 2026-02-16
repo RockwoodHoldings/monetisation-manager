@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import Setup from "./pages/Setup";
 import Dashboard from "./pages/Dashboard";
+import ApiKeyGuide from "./pages/ApiKeyGuide";
 import type { AppState } from "./types";
 
 export default function App() {
@@ -25,6 +26,7 @@ export default function App() {
         path="/"
         element={<Setup appState={appState} setAppState={setAppState} />}
       />
+      <Route path="/guide" element={<ApiKeyGuide />} />
       <Route
         path="/dashboard/*"
         element={
